@@ -1,25 +1,27 @@
-import murmur3.Murmur3HashFunctionFactory;
+package bloom;
+
+import bloom.hash.HashFunction;
+import bloom.hash.HashFunctionFactory;
 
 import java.math.BigInteger;
-import java.util.function.Function;
 
 public class BloomFilter {
 
     private final BigInteger sizeInBits;
     private final byte[] filter;
-    private final Function<byte[], byte[]>[] hashFunctions;
+    private final HashFunction[] hashFunctions;
 
-    public BloomFilter(int elementCount, double epsilon) {
-        this(calculateBitCount(elementCount, epsilon), calculateHashFunctionCount(epsilon));
+    public static BloomFilter of(int elementCount, double epsilon) {
+        return new BloomFilter(calculateBitCount(elementCount, epsilon), calculateHashFunctionCount(epsilon));
     }
 
     @SuppressWarnings("unchecked")
     private BloomFilter(int sizeInBits, int hashFunctionCount) {
         this.sizeInBits = BigInteger.valueOf(sizeInBits);
         filter = new byte[calculateArraySize(sizeInBits)];
-        hashFunctions = (Function<byte[], byte[]>[]) new Function[hashFunctionCount];
+        hashFunctions = new HashFunction[hashFunctionCount];
         for (var i = 0; i < hashFunctionCount; i++) {
-            hashFunctions[i] = Murmur3HashFunctionFactory.create(i);
+            hashFunctions[i] = HashFunctionFactory.createMurmur3(i);
         }
     }
 
@@ -33,7 +35,7 @@ public class BloomFilter {
 
     public void insert(byte[] element) {
         for (var hashFunction : hashFunctions) {
-            var hashAsBytes = hashFunction.apply(element);
+            var hashAsBytes = hashFunction.hash(element);
             var hashAsInt = new BigInteger(1, hashAsBytes);
             var bitIndex = hashAsInt.mod(sizeInBits).intValueExact();
             var byteIndex = bitIndex >> 3;
@@ -43,7 +45,7 @@ public class BloomFilter {
 
     public boolean contains(byte[] element) {
         for (var hashFunction : hashFunctions) {
-            var hashAsBytes = hashFunction.apply(element);
+            var hashAsBytes = hashFunction.hash(element);
             var hashAsInt = new BigInteger(1, hashAsBytes);
             var bitIndex = hashAsInt.mod(sizeInBits).intValueExact();
             var byteIndex = bitIndex >> 3;
@@ -62,4 +64,3 @@ public class BloomFilter {
         return size;
     }
 }
-

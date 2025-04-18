@@ -1,3 +1,4 @@
+import bloom.BloomFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -8,12 +9,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BloomFilterTest {
     private static final Random RANDOM = new Random();
+
     private BloomFilter bloomFilter;
 
     @BeforeEach
     public void setUp() {
         // Initialize with expected 1000 elements and 1% false positive rate
-        bloomFilter = new BloomFilter(1000, 0.01);
+        bloomFilter = BloomFilter.of(1000, 0.01);
     }
 
     @Test
@@ -74,8 +76,7 @@ public class BloomFilterTest {
     private String randomStr() {
         var sb = new StringBuilder(30);
         for (var i = 0; i < 30; i++) {
-            var ch = (char) ('!' + (RANDOM.nextInt(94)));
-            sb.append(ch);
+            sb.append((char) (32 + (RANDOM.nextInt(95))));
         }
         return sb.toString();
     }
