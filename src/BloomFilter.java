@@ -1,24 +1,25 @@
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
+import murmur3.Murmur3HashFunctionFactory;
 
 import java.math.BigInteger;
+import java.util.function.Function;
 
 public class BloomFilter {
 
     private final BigInteger sizeInBits;
     private final byte[] filter;
-    private final HashFunction[] hashFunctions;
+    private final Function<byte[], byte[]>[] hashFunctions;
 
     public BloomFilter(int elementCount, double epsilon) {
         this(calculateBitCount(elementCount, epsilon), calculateHashFunctionCount(epsilon));
     }
 
+    @SuppressWarnings("unchecked")
     private BloomFilter(int sizeInBits, int hashFunctionCount) {
         this.sizeInBits = BigInteger.valueOf(sizeInBits);
         filter = new byte[calculateArraySize(sizeInBits)];
-        hashFunctions = new HashFunction[hashFunctionCount];
+        hashFunctions = (Function<byte[], byte[]>[]) new Function[hashFunctionCount];
         for (var i = 0; i < hashFunctionCount; i++) {
-            hashFunctions[i] = Hashing.murmur3_128(i);
+            hashFunctions[i] = Murmur3HashFunctionFactory.create(i);
         }
     }
 
@@ -32,19 +33,19 @@ public class BloomFilter {
 
     public void insert(byte[] element) {
         for (var hashFunction : hashFunctions) {
-            var hashAsBytes = hashFunction.hashBytes(element).asBytes();
+            var hashAsBytes = hashFunction.apply(element);
             var hashAsInt = new BigInteger(1, hashAsBytes);
             var bitIndex = hashAsInt.mod(sizeInBits).intValueExact();
             var byteIndex = bitIndex >> 3;
-            filter[byteIndex] = (byte) (1 << (bitIndex & 0b111));
+            filter[byteIndex] |= (byte) (1 << (bitIndex & 0b111));
         }
     }
 
     public boolean contains(byte[] element) {
         for (var hashFunction : hashFunctions) {
-            var hashBytes = hashFunction.hashBytes(element).asBytes();
-            var hashInt = new BigInteger(1, hashBytes);
-            var bitIndex = hashInt.mod(sizeInBits).intValueExact();
+            var hashAsBytes = hashFunction.apply(element);
+            var hashAsInt = new BigInteger(1, hashAsBytes);
+            var bitIndex = hashAsInt.mod(sizeInBits).intValueExact();
             var byteIndex = bitIndex >> 3;
             if ((filter[byteIndex] & (1 << (bitIndex & 0b111))) == 0) {
                 return false;
