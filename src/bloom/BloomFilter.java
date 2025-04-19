@@ -15,7 +15,6 @@ public class BloomFilter {
         return new BloomFilter(calculateBitCount(elementCount, epsilon), calculateHashFunctionCount(epsilon));
     }
 
-    @SuppressWarnings("unchecked")
     private BloomFilter(int sizeInBits, int hashFunctionCount) {
         this.sizeInBits = BigInteger.valueOf(sizeInBits);
         filter = new byte[calculateArraySize(sizeInBits)];

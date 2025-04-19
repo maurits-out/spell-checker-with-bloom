@@ -10,16 +10,16 @@ record Murmur3HashFunction(int seed) implements HashFunction {
 
     @Override
     public byte[] hash(byte[] key) {
-        final int length = key.length;
-        final int blockCount = length >> 4;
+        final var length = key.length;
+        final var blockCount = length >> 4;
 
         long h1 = seed;
         long h2 = seed;
 
-        ByteBuffer buffer = ByteBuffer.wrap(key).order(ByteOrder.LITTLE_ENDIAN);
-        for (int i = 0; i < blockCount; i++) {
-            long k1 = buffer.getLong();
-            long k2 = buffer.getLong();
+        var buffer = ByteBuffer.wrap(key).order(ByteOrder.LITTLE_ENDIAN);
+        for (var i = 0; i < blockCount; i++) {
+            var k1 = buffer.getLong();
+            var k2 = buffer.getLong();
 
             k1 *= C1;
             k1 = Long.rotateLeft(k1, 31);
@@ -43,8 +43,8 @@ record Murmur3HashFunction(int seed) implements HashFunction {
         long k1 = 0;
         long k2 = 0;
 
-        int tailStart = blockCount * 16;
-        int remaining = length & 15;
+        var tailStart = blockCount * 16;
+        var remaining = length & 15;
         switch (remaining) {
             case 15:
                 k2 ^= (key[tailStart + 14] & 0xffL) << 48;
@@ -99,7 +99,11 @@ record Murmur3HashFunction(int seed) implements HashFunction {
         h1 += h2;
         h2 += h1;
 
-        ByteBuffer outBuffer = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
+        return toBytes(h1, h2);
+    }
+
+    private static byte[] toBytes(long h1, long h2) {
+        var outBuffer = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
         outBuffer.putLong(h1);
         outBuffer.putLong(h2);
         return outBuffer.array();

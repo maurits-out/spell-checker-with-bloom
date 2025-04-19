@@ -20,7 +20,7 @@ public class BloomFilterTest {
 
     @Test
     public void testInsertAndContains() {
-        String value = randomStr();
+        var value = randomStr();
         var valueBytes = toBytes(value);
 
         assertThat(bloomFilter.contains(valueBytes))
