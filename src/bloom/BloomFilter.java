@@ -12,15 +12,40 @@ public class BloomFilter {
     private final HashFunction[] hashFunctions;
 
     public static BloomFilter of(int elementCount, double epsilon) {
-        return new BloomFilter(calculateBitCount(elementCount, epsilon), calculateHashFunctionCount(epsilon));
+        var sizeInBites = calculateBitCount(elementCount, epsilon);
+        var hashFunctionCount = calculateHashFunctionCount(epsilon);
+        return new BloomFilter(sizeInBites, hashFunctionCount);
+    }
+
+    public void insert(byte[] element) {
+        for (var hashFunction : hashFunctions) {
+            var hashAsBytes = hashFunction.hash(element);
+            var bitIndex = hashCodeToBitIndex(hashAsBytes);
+            var byteIndex = toFilterIndex(bitIndex);
+            var mask = toByteMask(bitIndex);
+            filter[byteIndex] |= mask;
+        }
+    }
+
+    public boolean contains(byte[] element) {
+        for (var hashFunction : hashFunctions) {
+            var hashAsBytes = hashFunction.hash(element);
+            var bitIndex = hashCodeToBitIndex(hashAsBytes);
+            var byteIndex = toFilterIndex(bitIndex);
+            var mask = toByteMask(bitIndex);
+            if ((filter[byteIndex] & mask) == 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private BloomFilter(int sizeInBits, int hashFunctionCount) {
         this.sizeInBits = BigInteger.valueOf(sizeInBits);
-        filter = new byte[calculateArraySize(sizeInBits)];
-        hashFunctions = new HashFunction[hashFunctionCount];
+        this.filter = new byte[calculateArraySize(sizeInBits)];
+        this.hashFunctions = new HashFunction[hashFunctionCount];
         for (var i = 0; i < hashFunctionCount; i++) {
-            hashFunctions[i] = HashFunctionFactory.createMurmur3(i);
+            this.hashFunctions[i] = HashFunctionFactory.createMurmur3(i);
         }
     }
 
@@ -32,27 +57,18 @@ public class BloomFilter {
         return (int) -(Math.log(epsilon) / Math.log(2));
     }
 
-    public void insert(byte[] element) {
-        for (var hashFunction : hashFunctions) {
-            var hashAsBytes = hashFunction.hash(element);
-            var hashAsInt = new BigInteger(1, hashAsBytes);
-            var bitIndex = hashAsInt.mod(sizeInBits).intValueExact();
-            var byteIndex = bitIndex >> 3;
-            filter[byteIndex] |= (byte) (1 << (bitIndex & 0b111));
-        }
+
+    private byte toByteMask(int bitIndex) {
+        return (byte) (1 << (7 - (bitIndex & 0b111)));
     }
 
-    public boolean contains(byte[] element) {
-        for (var hashFunction : hashFunctions) {
-            var hashAsBytes = hashFunction.hash(element);
-            var hashAsInt = new BigInteger(1, hashAsBytes);
-            var bitIndex = hashAsInt.mod(sizeInBits).intValueExact();
-            var byteIndex = bitIndex >> 3;
-            if ((filter[byteIndex] & (1 << (bitIndex & 0b111))) == 0) {
-                return false;
-            }
-        }
-        return true;
+    private int toFilterIndex(int bitIndex) {
+        return bitIndex >> 3;
+    }
+
+    private int hashCodeToBitIndex(byte[] hashAsBytes) {
+        var hashAsInt = new BigInteger(1, hashAsBytes);
+        return hashAsInt.mod(sizeInBits).intValueExact();
     }
 
     private int calculateArraySize(int sizeInBits) {
