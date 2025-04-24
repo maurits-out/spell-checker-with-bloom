@@ -1,7 +1,7 @@
-package bloom;
+package nl.mout.spellchecker.bloom;
 
-import bloom.hash.HashFunction;
-import bloom.hash.HashFunctionFactory;
+import nl.mout.spellchecker.bloom.hash.HashFunction;
+import nl.mout.spellchecker.bloom.hash.HashFunctionFactory;
 
 import java.io.IOException;
 import java.io.InputStream;

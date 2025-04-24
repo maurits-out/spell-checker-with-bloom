@@ -1,13 +1,13 @@
-package bloom.hash;
+package nl.mout.spellchecker.bloom.hash;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Objects;
 
 final class Murmur3HashFunction implements HashFunction {
 
     private static final long C1 = 0x87c37b91114253d5L;
     private static final long C2 = 0x4cf5ad432745937fL;
+
     private final int seed;
 
     Murmur3HashFunction(int seed) {
@@ -123,28 +123,4 @@ final class Murmur3HashFunction implements HashFunction {
         k ^= k >>> 33;
         return k;
     }
-
-    public int seed() {
-        return seed;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (Murmur3HashFunction) obj;
-        return this.seed == that.seed;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(seed);
-    }
-
-    @Override
-    public String toString() {
-        return "Murmur3HashFunction[" +
-                "seed=" + seed + ']';
-    }
-
 }

@@ -1,5 +1,5 @@
-import bloom.BloomFilter;
-import bloom.BloomFilterException;
+package nl.mout.spellchecker.bloom;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

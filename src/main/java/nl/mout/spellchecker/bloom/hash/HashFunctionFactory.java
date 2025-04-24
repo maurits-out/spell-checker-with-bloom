@@ -1,4 +1,4 @@
-package bloom.hash;
+package nl.mout.spellchecker.bloom.hash;
 
 public class HashFunctionFactory {
 

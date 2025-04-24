@@ -1,5 +1,6 @@
-package bloom;
+package nl.mout.spellchecker;
 
+import nl.mout.spellchecker.bloom.BloomFilter;
 import org.apache.commons.cli.*;
 
 import java.io.BufferedInputStream;
@@ -20,8 +21,8 @@ public class SpellChecker {
 
     public static void main(String[] args) {
         try {
-            Options options = createOptions();
-            CommandLine commandLine = parseCommandLine(options, args);
+            var options = createOptions();
+            var commandLine = parseCommandLine(options, args);
 
             if (commandLine.hasOption("help")) {
                 printHelp(options);
@@ -123,7 +124,7 @@ public class SpellChecker {
             bloomFilter.serialize(buffered);
         }
         
-        System.out.println("Bloom filter created successfully and saved to: " + bloomFilterFile);
+        System.out.printf("Bloom filter created successfully and saved to: %s%n", bloomFilterFile);
     }
 
     private static void checkDocument(CommandLine commandLine, Path bloomFilterFile) throws ParseException, IOException {
